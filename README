@@ -1,22 +1,5 @@
+Testing various openssl on NeXT
 
-# cc -Wall -DNDEBUG=1 -I/usr/local/ssl-1.0.2/include t-rsa.c -L/usr/local/ssl-1.0.2/lib -lcrypto -o t-rsa /Users/oo/Projects/compile/tcgetattr/getattr.o
-
-# comp42os1, with egcs cross compiler
-# -----------------------------------
-
-#CC=m68k-next-nextstep3-gcc
-#BUILD=$HOME/Projects/compile/openssl-1.0.2l.dirty-m68k
-#OBJ=t-rsa-os4-m68
-
-BUILD=/me/openssl-1.0.2l.dirty
-CC=i386-next-nextstep3-gcc
-OBJ=t-rsa-os4-x86
-
-$CC -g2 -O -Wall -DNDEBUG=1 \
-	-o $OBJ \
-	-I$BUILD/include  \
-	t-rsa.c  \
-	$BUILD/libcrypto.a \
-	$BUILD/getattr.o
-
-# 2017-10 robf
+```
+make
+```
