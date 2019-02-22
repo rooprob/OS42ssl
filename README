@@ -3,3 +3,9 @@ Testing various openssl on NeXT
 ```
 make
 ```
+
+To make with differences,
+
+```
+make SSL_DIR=~/Projects/openssl-1.0.2l.dirty CC=m68k-next-nextstep3-gcc
+```
