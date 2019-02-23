@@ -310,6 +310,11 @@ int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey)
     int result = -1;
     int rc;
     RSA* rsa;
+    BIGNUM *bne = NULL;
+    BIO *bp_public = NULL, *bp_private = NULL;
+
+    int bits = 1024;
+    unsigned long e = RSA_F4;
 
     if(!skey || !vkey)
         return -1;
@@ -324,30 +329,50 @@ int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey)
         *vkey = NULL;
     }
 
-    rsa = NULL;
+    rsa = RSA_new();
 
     do
     {
+        printf("BN_new....\n");
+        bne = BN_new();
+        rc = BN_set_word(bne, e);
+        if (rc != 1) {
+                printf("BN_set_word failed, error 0x%lx\n", ERR_get_error());
+                break;
+        }
+
+        printf("EVP_PKEY_new (skey)....\n");
         *skey = EVP_PKEY_new();
         assert(*skey != NULL);
         if(*skey == NULL) {
-            printf("EVP_PKEY_new failed (1), error 0x%lx\n", ERR_get_error());
-            break; /* failed */
+                printf("EVP_PKEY_new failed (1), error 0x%lx\n", ERR_get_error());
+                break; /* failed */
         }
 
+        printf("EVP_PKEY_new (vkey)....\n");
         *vkey = EVP_PKEY_new();
         assert(*vkey != NULL);
         if(*vkey == NULL) {
-            printf("EVP_PKEY_new failed (2), error 0x%lx\n", ERR_get_error());
-            break; /* failed */
+                printf("EVP_PKEY_new failed (2), error 0x%lx\n", ERR_get_error());
+                break; /* failed */
         }
 
-        rsa = RSA_generate_key(512, RSA_F4, NULL, NULL);
-        assert(rsa != NULL);
-        if(rsa == NULL) {
-            printf("RSA_generate_key failed, error 0x%lx\n", ERR_get_error());
-            break; /* failed */
+        printf("RSA_generate_key....\n");
+        /* rsa = RSA_generate_key(256, RSA_F4, NULL, NULL); */
+        rc = RSA_generate_key_ex(rsa, bits, bne, NULL);
+        if(rc != 1) {
+                printf("RSA_generate_key_ex failed, error 0x%lx\n", ERR_get_error());
+                break; /* failed */
         }
+
+        printf("Saving private key...\n");
+        bp_private = BIO_new_file("private.pem", "w+");
+        rc = PEM_write_bio_RSAPrivateKey(bp_private, rsa, NULL, NULL, 0, NULL, NULL);
+        if (rc != 1) {
+                printf("Failed writing private key, error 0x%lx\n", ERR_get_error());
+                break;
+        }
+        BIO_free_all(bp_private);
 
         /* Set signing key */
         rc = EVP_PKEY_assign_RSA(*skey, RSAPrivateKey_dup(rsa));
@@ -370,6 +395,15 @@ int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey)
 
         /* Sanity check. Verify private exponent is missing */
         /* assert(EVP_PKEY_get0_RSA(*vkey)->d == NULL); */
+
+        printf("Saving public key...\n");
+        bp_public = BIO_new_file("public.pem", "w+");
+        rc = PEM_write_bio_PUBKEY(bp_public, *vkey );
+        if (rc != 1) {
+                printf("Failed writing public key, error 0x%lx\n", ERR_get_error());
+                break;
+        }
+        BIO_free_all(bp_public);
 
         result = 0;
 

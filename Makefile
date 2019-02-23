@@ -12,6 +12,9 @@ DEBUG_LEVEL	= -g -DNDEBUG=1
 EXTRA_CFLAGS	= -Wformat -Wshadow -Wmissing-prototypes -Wmissing-declarations -Werror
 CFLAGS		= $(DEBUG_LEVEL) $(EXTRA_CFLAGS)
 
+# Arch
+#ARCH		= $(`hostinfo|awk '/Processor type:/ {print $3}'`
+
 # Flags to pass to C pre-processor
 
 CPPFLAGS	= -I$(SSL_DIR)/include
@@ -24,7 +27,7 @@ LDFLAGS		= -L$(SSL_DIR)
 
 LDLIBS		= -lcrypto $(SSL_DIR)/getattr.o
 
-PROGS 		= t-rsa t-hmac
+PROGS 		= t-rsa-$(ARCH).exe t-hmac-$(ARCH).exe
 OBJS		= t-rsa.o t-hmac.o
 
 .PHONY: all
@@ -32,7 +35,7 @@ OBJS		= t-rsa.o t-hmac.o
 all: $(PROGS)
 
 $(OBJS):
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $*-$(ARCH).exe $< $(LDFLAGS) $(LDLIBS)
 
 $(PROGS): $(OBJS)
 
